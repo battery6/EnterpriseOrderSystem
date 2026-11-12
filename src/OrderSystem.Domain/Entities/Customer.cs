@@ -9,9 +9,19 @@ public class Customer : BaseEntity
 
     public Customer(string name, string email)
     {
+        if (name is null)
+        {
+            throw new ArgumentNullException(nameof(name), "Name is required.");
+        }
+
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new ArgumentException("Name is required.", nameof(name));
+        }
+
+        if (email is null)
+        {
+            throw new ArgumentNullException(nameof(email), "Email is required.");
         }
 
         if (!IsValidEmail(email))
@@ -25,6 +35,11 @@ public class Customer : BaseEntity
 
     public void UpdateEmail(string newEmail)
     {
+        if (newEmail is null)
+        {
+            throw new ArgumentNullException(nameof(newEmail), "Email is required.");
+        }
+
         if (!IsValidEmail(newEmail))
         {
             throw new ArgumentException("Invalid email address.", nameof(newEmail));

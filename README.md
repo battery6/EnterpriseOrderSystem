@@ -4,7 +4,7 @@ An enterprise-grade, multi-tenant order management backend built with Clean Arch
 
 ## Stack
 
-- **Core:** C# 13, .NET 9 Web API
+- **Core:** C# 15, .NET 11 Web API
 - **Architecture:** Clean Architecture (Domain, Application, Infrastructure, API)
 - **Database & ORM:** PostgreSQL 18.6, Entity Framework Core (EF Core) with Global Query Filters & Optimistic Concurrency
 - **Caching & Messaging:** Redis, RabbitMQ, MassTransit

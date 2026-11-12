@@ -72,7 +72,7 @@ public class Order : BaseEntity
         return Items.AsReadOnly();
     }
 
-    public decimal GetTotalAmount()
+    public decimal GetTotalPrice()
     {
         return Items.Sum(item => item.GetTotalPrice());
     }
