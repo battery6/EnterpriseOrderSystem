@@ -6,15 +6,10 @@ public class Order : BaseEntity
     private List<OrderItem> Items { get; set; }
     public Customer Customer { get; private set; }
 
-    public Order(Customer customer)
+    public Order(List<OrderItem> items, Customer customer)
     {
-        if (customer == null)
-        {
-            throw new ArgumentNullException(nameof(customer), "Customer cannot be null.");
-        }
-
-        Items = new List<OrderItem>();
-        Customer = customer;
+        Items = items ?? throw new ArgumentNullException(nameof(items), "Items cannot be null.");
+        Customer = customer ?? throw new ArgumentNullException(nameof(customer), "Customer cannot be null.");
     }
 
     public void AddItem(Product product, int quantity)
