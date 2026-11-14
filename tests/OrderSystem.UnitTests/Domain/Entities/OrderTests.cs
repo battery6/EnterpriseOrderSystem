@@ -1,4 +1,4 @@
-namespace OrderSystem.UnitTests.Entities;
+namespace OrderSystem.UnitTests.Domain.Entities;
 using OrderSystem.Domain.Entities;
 
 public class OrderTests
@@ -10,7 +10,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         // Act
-        var order = new Order(customer);
+        var order = new Order([], customer);
         // Assert
         Assert.Equal(customer, order.Customer);
         Assert.Empty(order.GetItems());
@@ -23,7 +23,7 @@ public class OrderTests
         Customer? nullCustomer = null;
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => new Order(nullCustomer!));
+        var exception = Assert.Throws<ArgumentNullException>(() => new Order([], nullCustomer!));
         Assert.Equal("customer", exception.ParamName);
     }
 
@@ -33,7 +33,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
 
         // Act
         order.AddItem(product, 2);
@@ -50,7 +50,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
         order.AddItem(product, 2);
 
         // Act
@@ -68,7 +68,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         Product? nullProduct = null;
-        var order = new Order(customer);
+        var order = new Order([], customer);
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => order.AddItem(nullProduct!, 2));
@@ -81,7 +81,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() => order.AddItem(product, 0));
@@ -94,7 +94,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentOutOfRangeException>(() => order.AddItem(product, -1));
@@ -107,7 +107,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
         order.AddItem(product, 2);
 
         // Act
@@ -125,7 +125,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(() => order.ChangeItemQuantity(product, 5));
@@ -137,7 +137,7 @@ public class OrderTests
     {
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
-        var order = new Order(customer);
+        var order = new Order([], customer);
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => order.ChangeItemQuantity(null!, 5));
@@ -150,7 +150,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
         order.AddItem(product, 2);
 
         // Act & Assert
@@ -164,7 +164,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
         order.AddItem(product, 2);
 
         // Act & Assert
@@ -178,7 +178,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
         order.AddItem(product, 2);
 
         // Act
@@ -195,7 +195,7 @@ public class OrderTests
     {
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
-        var order = new Order(customer);
+        var order = new Order([], customer);
 
         // Act
         var items = order.GetItems();
@@ -210,7 +210,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
         order.AddItem(product, 2);
 
         // Act
@@ -229,7 +229,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
         order.AddItem(product, 2);
 
         // Act
@@ -244,7 +244,7 @@ public class OrderTests
     {
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
-        var order = new Order(customer);
+        var order = new Order([], customer);
 
         // Act
         var totalPrice = order.GetTotalPrice();
@@ -260,7 +260,7 @@ public class OrderTests
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product1 = new Product("Test Product 1", 10.99m);
         var product2 = new Product("Test Product 2", 20.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
         order.AddItem(product1, 2);
         order.AddItem(product2, 1);
 
@@ -277,7 +277,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
         order.AddItem(product, 2);
 
         // Act
@@ -293,7 +293,7 @@ public class OrderTests
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
         var product = new Product("Test Product", 10.99m);
-        var order = new Order(customer);
+        var order = new Order([], customer);
         order.AddItem(product, 2);
         order.AddItem(product, 1);
 

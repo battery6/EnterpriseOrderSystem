@@ -1,4 +1,4 @@
-namespace OrderSystem.UnitTests.Entities;
+namespace OrderSystem.UnitTests.Domain.Entities;
 using OrderSystem.Domain.Entities;
 
 public class CustomerTests
