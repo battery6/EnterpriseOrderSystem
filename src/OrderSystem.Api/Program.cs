@@ -1,4 +1,4 @@
-using OrderSystem.Infrastructure.Persistance;
+using OrderSystem.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddPersistence(builder.Configuration);
+builder.Services.AddApplication();
 
 var app = builder.Build();
 
