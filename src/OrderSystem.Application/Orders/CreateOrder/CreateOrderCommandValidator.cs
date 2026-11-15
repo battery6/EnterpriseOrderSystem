@@ -1,4 +1,5 @@
 namespace OrderSystem.Application.Orders.CreateOrder;
+
 using FluentValidation;
 
 public sealed class CreateOrderCommandValidator 

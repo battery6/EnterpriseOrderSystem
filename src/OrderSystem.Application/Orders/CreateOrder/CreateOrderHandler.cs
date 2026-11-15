@@ -1,4 +1,5 @@
 namespace OrderSystem.Application.Orders.CreateOrder;
+
 using FluentValidation;
 using OrderSystem.Domain.Entities;
 using OrderSystem.Application.Abstractions.Persistence;
@@ -8,12 +9,14 @@ public sealed class CreateOrderHandler(
     IValidator<CreateOrderCommand> validator,
     ICustomerRepository customers,
     IProductRepository products,
-    IOrderRepository orders)
+    IOrderRepository orders,
+    IUnitOfWork unitOfWork)
 {
     private readonly IValidator<CreateOrderCommand> _validator = validator;
     private readonly ICustomerRepository _customers = customers;
     private readonly IProductRepository _products = products;
     private readonly IOrderRepository _orders = orders;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
     public async Task<Order> HandleAsync(
         CreateOrderCommand command,
@@ -48,6 +51,7 @@ public sealed class CreateOrderHandler(
             order.AddItem(productsById[item.ProductId], item.Quantity);
 
         await _orders.AddAsync(order, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return order;
     }
