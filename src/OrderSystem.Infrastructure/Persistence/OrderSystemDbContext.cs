@@ -25,6 +25,8 @@ public sealed class OrderSystemDbContext(
             entity.Property(customer => customer.Email)
                 .HasMaxLength(Customer.MaxEmailLength)
                 .IsRequired();
+            entity.HasIndex(customer => customer.Email)
+                .IsUnique();
         });
 
         modelBuilder.Entity<Product>(entity =>
