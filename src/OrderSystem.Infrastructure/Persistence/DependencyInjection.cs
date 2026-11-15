@@ -1,10 +1,13 @@
-namespace OrderSystem.Infrastructure.Persistance;
+namespace OrderSystem.Infrastructure.Persistence;
 
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OrderSystem.Application.Abstractions.Persistence;
-using OrderSystem.Infrastructure.Persistence;
+using OrderSystem.Application.Orders.CreateOrder;
+using OrderSystem.Application.Products.CreateProduct;
+using OrderSystem.Application.Customers.CreateCustomer;
 using OrderSystem.Infrastructure.Persistence.Repositories;
 
 public static class DependencyInjection 
@@ -27,6 +30,19 @@ public static class DependencyInjection
 
         services.AddScoped<IUnitOfWork>(
             provider => provider.GetRequiredService<OrderSystemDbContext>());
+
+        return services;
+    }
+
+    public static IServiceCollection AddApplication(
+        this IServiceCollection services)
+    {
+        services.AddScoped<CreateCustomerHandler>();
+        services.AddScoped<CreateProductHandler>();
+        services.AddScoped<CreateOrderHandler>();
+
+        services.AddValidatorsFromAssembly(
+            typeof(DependencyInjection).Assembly);
 
         return services;
     }
