@@ -1,4 +1,5 @@
 namespace OrderSystem.Domain.Entities;
+
 using OrderSystem.Domain.Common;
 using System.Net.Mail;
 
@@ -6,6 +7,8 @@ public class Customer : BaseEntity
 {
     public string Name { get; private set; }
     public string Email { get; private set; }
+    public const int MaxNameLength = 100;
+    public const int MaxEmailLength = 100;
 
     public Customer(string name, string email)
     {
@@ -29,6 +32,16 @@ public class Customer : BaseEntity
             throw new ArgumentException("Invalid email address.", nameof(email));
         }
 
+        if (name.Length > MaxNameLength)
+        {
+            throw new ArgumentException($"Name cannot exceed {MaxNameLength} characters.", nameof(name));
+        }
+
+        if (email.Length > MaxEmailLength)
+        {
+            throw new ArgumentException($"Email cannot exceed {MaxEmailLength} characters.", nameof(email));
+        }
+
         Name = name;
         Email = email;
     }
@@ -43,6 +56,11 @@ public class Customer : BaseEntity
         if (!IsValidEmail(newEmail))
         {
             throw new ArgumentException("Invalid email address.", nameof(newEmail));
+        }
+
+        if (newEmail.Length > MaxEmailLength)
+        {
+            throw new ArgumentException($"Email cannot exceed {MaxEmailLength} characters.", nameof(newEmail));
         }
 
         Email = newEmail;

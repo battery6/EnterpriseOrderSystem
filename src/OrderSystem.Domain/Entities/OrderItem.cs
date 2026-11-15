@@ -1,4 +1,5 @@
 namespace OrderSystem.Domain.Entities;
+
 using OrderSystem.Domain.Common;
 
 public class OrderItem : BaseEntity
@@ -7,19 +8,19 @@ public class OrderItem : BaseEntity
     public int Quantity { get; private set; }
     public decimal UnitPrice { get; private set; }
 
+    private OrderItem()
+    {
+        Product = null!;
+    }
+
     public OrderItem(Product product, int quantity)
     {
-        if (product == null)
-        {
-            throw new ArgumentNullException(nameof(product), "Product cannot be null.");
-        }
-
         if (quantity <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");
         }
 
-        Product = product;
+        Product = product ?? throw new ArgumentNullException(nameof(product), "Product cannot be null.");
         Quantity = quantity;
         UnitPrice = product.CurrentPrice;
     }

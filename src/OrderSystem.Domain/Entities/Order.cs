@@ -1,10 +1,17 @@
 namespace OrderSystem.Domain.Entities;
+
 using OrderSystem.Domain.Common;
 
 public class Order : BaseEntity
 {
     private List<OrderItem> Items { get; set; }
     public Customer Customer { get; private set; }
+
+    private Order()
+    {
+        Items = [];
+        Customer = null!;
+    }
 
     public Order(List<OrderItem> items, Customer customer)
     {
