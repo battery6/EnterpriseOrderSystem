@@ -7,8 +7,7 @@ using OrderSystem.Application.Common.Exceptions;
 
 public class CreateOrderHandlerTests
 {
-    // Create fake repositories methods to simulate the behavior of the actual repositories
-        private sealed class FakeCustomerRepository(Customer customer) : ICustomerRepository
+    private sealed class FakeCustomerRepository(Customer customer) : ICustomerRepository
     {
         public Task<Customer?> GetByIdAsync(
             Guid customerId,
@@ -16,19 +15,39 @@ public class CreateOrderHandlerTests
         {
             return Task.FromResult(customer.Id == customerId ? customer : null);
         }
+
+        public Task AddAsync(Customer customer, CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FakeProductRepository(params Product[] products) : IProductRepository
     {
+        public int GetByIdsCallCount { get; private set; }
+
+        public Task<Product?> GetByIdAsync(
+            Guid productId,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(products.SingleOrDefault(product => product.Id == productId));
+        }
+
         public Task<IReadOnlyList<Product>> GetByIdsAsync(
             Guid[] productIds,
             CancellationToken cancellationToken = default)
         {
+            GetByIdsCallCount++;
             IReadOnlyList<Product> matchingProducts = products
                 .Where(product => productIds.Contains(product.Id))
                 .ToArray();
 
             return Task.FromResult(matchingProducts);
+        }
+
+        public Task AddAsync(Product product, CancellationToken cancellationToken = default)
+        {
+            return Task.CompletedTask;
         }
     }
 
@@ -36,10 +55,28 @@ public class CreateOrderHandlerTests
     {
         public Order? SavedOrder { get; private set; }
 
+        public Task<Order?> GetByIdAsync(
+            Guid orderId,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(SavedOrder?.Id == orderId ? SavedOrder : null);
+        }
+
         public Task AddAsync(Order order, CancellationToken cancellationToken = default)
         {
             SavedOrder = order;
             return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FakeUnitOfWork : IUnitOfWork
+    {
+        public int SaveChangesCallCount { get; private set; }
+
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            SaveChangesCallCount++;
+            return Task.FromResult(1);
         }
     }
 
@@ -53,6 +90,7 @@ public class CreateOrderHandlerTests
         var customerRepository = new FakeCustomerRepository(customer);
         var productRepository = new FakeProductRepository(product1, product2);
         var orderRepository = new FakeOrderRepository();
+        var unitOfWork = new FakeUnitOfWork();
 
         var command = new CreateOrderCommand(
             customer.Id,
@@ -65,7 +103,8 @@ public class CreateOrderHandlerTests
             new CreateOrderCommandValidator(),
             customerRepository,
             productRepository,
-            orderRepository);
+            orderRepository,
+            unitOfWork);
 
         // Act
         var result = await handler.HandleAsync(command, CancellationToken.None);
@@ -78,6 +117,7 @@ public class CreateOrderHandlerTests
             [(product1.Id, 2), (product2.Id, 1)],
             result.GetItems().Select(item => (item.Product.Id, item.Quantity)));
         Assert.Same(result, orderRepository.SavedOrder);
+        Assert.Equal(1, unitOfWork.SaveChangesCallCount);
     }
 
     [Fact]
@@ -88,6 +128,7 @@ public class CreateOrderHandlerTests
         var customerRepository = new FakeCustomerRepository(new Customer("Test customer", "customer@example.com"));
         var productRepository = new FakeProductRepository(product);
         var orderRepository = new FakeOrderRepository();
+        var unitOfWork = new FakeUnitOfWork();
 
         var command = new CreateOrderCommand(
             Guid.NewGuid(), // Non-existent customer ID
@@ -99,13 +140,16 @@ public class CreateOrderHandlerTests
             new CreateOrderCommandValidator(),
             customerRepository,
             productRepository,
-            orderRepository);
+            orderRepository,
+            unitOfWork);
 
         // Act & Assert
         await Assert.ThrowsAsync<CustomerNotFoundException>(
             () => handler.HandleAsync(command, CancellationToken.None));
 
         Assert.Null(orderRepository.SavedOrder);
+        Assert.Equal(0, productRepository.GetByIdsCallCount);
+        Assert.Equal(0, unitOfWork.SaveChangesCallCount);
     }
 
     [Fact]
@@ -117,6 +161,7 @@ public class CreateOrderHandlerTests
         var customerRepository = new FakeCustomerRepository(customer);
         var productRepository = new FakeProductRepository(product1);
         var orderRepository = new FakeOrderRepository();
+        var unitOfWork = new FakeUnitOfWork();
         var missingProductId = Guid.NewGuid(); // Non-existent product ID
 
         var command = new CreateOrderCommand(
@@ -130,7 +175,8 @@ public class CreateOrderHandlerTests
             new CreateOrderCommandValidator(),
             customerRepository,
             productRepository,
-            orderRepository);
+            orderRepository,
+            unitOfWork);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ProductsNotFoundException>(
@@ -138,5 +184,6 @@ public class CreateOrderHandlerTests
 
         Assert.Contains(missingProductId, exception.ProductIds);
         Assert.Null(orderRepository.SavedOrder);
+        Assert.Equal(0, unitOfWork.SaveChangesCallCount);
     }
 }
