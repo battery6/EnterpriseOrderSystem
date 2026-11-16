@@ -42,7 +42,7 @@ public static class DependencyInjection
         services.AddScoped<CreateOrderHandler>();
 
         services.AddValidatorsFromAssembly(
-            typeof(DependencyInjection).Assembly);
+            typeof(CreateOrderCommandValidator).Assembly);
 
         return services;
     }
