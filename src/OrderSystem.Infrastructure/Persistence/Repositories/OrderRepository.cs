@@ -1,5 +1,6 @@
 namespace OrderSystem.Infrastructure.Persistence.Repositories;
 
+using Microsoft.EntityFrameworkCore;
 using OrderSystem.Application.Abstractions.Persistence;
 using OrderSystem.Domain.Entities;
 
@@ -11,7 +12,12 @@ public sealed class OrderRepository(OrderSystemDbContext dbContext) : IOrderRepo
         Guid orderId, 
         CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Orders.FindAsync([orderId], cancellationToken);
+        return await _dbContext.Orders
+        .Include(order => order.Customer)
+        .Include("Items.Product")
+        .FirstOrDefaultAsync(
+            order => order.Id == orderId, 
+            cancellationToken);
     }
 
     public async Task AddAsync(
