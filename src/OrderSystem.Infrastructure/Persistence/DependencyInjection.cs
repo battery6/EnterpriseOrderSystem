@@ -9,6 +9,9 @@ using OrderSystem.Application.Orders.CreateOrder;
 using OrderSystem.Application.Products.CreateProduct;
 using OrderSystem.Application.Customers.CreateCustomer;
 using OrderSystem.Infrastructure.Persistence.Repositories;
+using OrderSystem.Application.Customers.GetCustomer;
+using OrderSystem.Application.Products.GetProduct;
+using OrderSystem.Application.Orders.GetOrder;
 
 public static class DependencyInjection 
 {
@@ -38,8 +41,11 @@ public static class DependencyInjection
         this IServiceCollection services)
     {
         services.AddScoped<CreateCustomerHandler>();
+        services.AddScoped<GetCustomerHandler>();
         services.AddScoped<CreateProductHandler>();
+        services.AddScoped<GetProductHandler>();
         services.AddScoped<CreateOrderHandler>();
+        services.AddScoped<GetOrderHandler>();
 
         services.AddValidatorsFromAssembly(
             typeof(CreateOrderCommandValidator).Assembly);
