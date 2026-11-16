@@ -1,6 +1,59 @@
-@OrderSystem.Api_HostAddress = http://localhost:5232
+@baseUrl = http://localhost:5232
 
-GET {{OrderSystem.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Create customer
+# @name createCustomer
+POST {{baseUrl}}/api/customers
+Content-Type: application/json
+
+{
+  "name": "Ada Lovelace",
+  "email": "ada@example.com"
+}
 
 ###
+@customerId = {{createCustomer.response.body.$.id}}
+
+### Get customer
+GET {{baseUrl}}/api/customers/{{customerId}}
+Accept: application/json
+
+
+### Create product
+# @name createProduct
+POST {{baseUrl}}/api/products
+Content-Type: application/json
+
+{
+  "name": "Notebook",
+  "currentPrice": 12.50
+}
+
+###
+@productId = {{createProduct.response.body.$.id}}
+
+### Get product
+GET {{baseUrl}}/api/products/{{productId}}
+Accept: application/json
+
+
+### Create order
+# @name createOrder
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "orderItems": [
+    {
+      "productId": "{{productId}}",
+      "quantity": 2
+    }
+  ]
+}
+
+###
+@orderId = {{createOrder.response.body.$.id}}
+
+### Get order
+GET {{baseUrl}}/api/orders/{{orderId}}
+Accept: application/json
