@@ -1,0 +1,21 @@
+# Git metadata
+.git/
+
+# .NET build outputs
+**/bin/
+**/obj/
+**/TestResults/
+**/publish/
+dist/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local environment files and secrets
+.env
+.env.*
