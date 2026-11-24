@@ -1,10 +1,8 @@
 namespace OrderSystem.IntegrationTests;
 
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OrderSystem.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
@@ -27,14 +25,12 @@ public sealed class ApiTestFixture : IAsyncLifetime
 
         _factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
-            {
-                builder.UseEnvironment("Development");
-                builder.ConfigureAppConfiguration((_, configuration) =>
-                    configuration.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ConnectionStrings:OrderSystem"] = _postgres.GetConnectionString()
-                    }));
-            });
+        {
+            builder.UseEnvironment("Development");
+            builder.UseSetting(
+                "ConnectionStrings:OrderSystem",
+                _postgres.GetConnectionString());
+        });
 
         Client = _factory.CreateClient();
 
