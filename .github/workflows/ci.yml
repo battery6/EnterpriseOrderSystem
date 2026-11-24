@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  POSTGRES_DB: ordersystem
+  POSTGRES_USER: ordersystem
+  POSTGRES_PASSWORD: ci-password
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "11.0.x"
+
+      - name: Restore
+        run: dotnet restore EnterpriseOrderSystem.sln
+
+      - name: Build
+        run: dotnet build EnterpriseOrderSystem.sln --no-restore
+
+      - name: Unit tests
+        run: dotnet test tests/OrderSystem.UnitTests/OrderSystem.UnitTests.csproj --no-build --no-restore
+
+      - name: Integration tests
+        run: dotnet test tests/OrderSystem.IntegrationTests/OrderSystem.IntegrationTests.csproj --no-build --no-restore
+
+      - name: Docker smoke test
+        env:
+          CI: "true"
+        run: bash tests/scripts/docker-smoke.sh

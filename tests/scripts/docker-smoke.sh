@@ -7,7 +7,9 @@ cleanup() {
 
 # Restore method, ups normal stack
 restore_normal_stack() {
-    docker compose up --build -d
+    if [ "${CI:-}" != "true" ]; then
+        docker compose up --build -d
+    fi
 }
 
 # On exit trap, print ps and log info, run cleanup, restore normal stack
