@@ -26,10 +26,10 @@ RUN dotnet publish "OrderSystem.Api.csproj" \
 FROM base AS final
 USER root
 RUN apt-get update \
-    && apt-get install --no-install-recommeds --yes curl \
+    && apt-get install --no-install-recommends --yes curl \
     && rm -rf /var/lib/apt/lists/*
 
-USER &APP_UID
+USER $APP_UID
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "OrderSystem.Api.dll"]
