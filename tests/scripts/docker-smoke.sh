@@ -65,6 +65,27 @@ create_resource() {
     printf '%s' "$id"
 }
 
+# Verify resource method, call API to get specified resource
+verify_resource() {
+    local resource_name="$1"
+    local endpoint="$2"
+    local id="$3"
+    local status
+
+    status=$(
+        curl --silent --show-error \
+            --output /dev/null --write-out "%{http_code}" \
+            "$endpoint/$id"
+    )
+
+    if [ "$status" != "200" ]; then
+        echo "$resource_name GET returned HTTP $status for ID $id" >&2
+        return 1
+    fi
+
+    echo "$resource_name GET verified: $id" >&2
+}
+
 # Down current stack
 docker compose down
 
@@ -110,26 +131,35 @@ if [ "$migrate_exit_code" != "0" ]; then
     exit 1
 fi
 
-# Create customer
+# Create customer and verify success
 customer_id=$(
     create_resource "Customer" \
         "http://localhost:8080/api/customers" \
         '{"name":"Smoke Customer","email":"smoke@example.com"}'
 ) || exit 1
+verify_resource "Customer" \
+    "http://localhost:8080/api/customers" \
+    "$customer_id" || exit 1
 
-# Create product
+# Create product and verify success
 product_id=$(
     create_resource "Product" \
         "http://localhost:8080/api/products" \
         '{"name":"Smoke Product","currentPrice":12.50}'
 ) || exit 1
+verify_resource "Product" \
+    "http://localhost:8080/api/products" \
+    "$product_id" || exit 1
 
-# Create order
+# Create order and verify success
 order_id=$(
     create_resource "Order" \
         "http://localhost:8080/api/orders" \
         "{\"customerId\":\"$customer_id\",\"orderItems\":[{\"productId\":\"$product_id\",\"quantity\":2}]}"
 ) || exit 1
+verify_resource "Order" \
+    "http://localhost:8080/api/orders" \
+    "$order_id" || exit 1
 
 # Inspect ps and logs
 docker compose -p enterprise-smoke ps
