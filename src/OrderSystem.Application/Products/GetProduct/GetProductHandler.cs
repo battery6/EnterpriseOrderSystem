@@ -8,10 +8,18 @@ public sealed class GetProductHandler(
 {
     private readonly IProductRepository _products = products;
 
-    public Task<Product?> HandleAsync(
+    public async Task<Product?> HandleAsync(
         GetProductQuery query,
         CancellationToken cancellationToken = default)
     {
-        return _products.GetByIdAsync(query.Id, cancellationToken);
+        
+        var product = await _products.GetByIdAsync(query.ProductId, cancellationToken);
+    
+        if(product is null || product.IsArchived)
+            {
+                return null;
+            }
+        
+        return product;
     }
 }

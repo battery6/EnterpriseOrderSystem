@@ -1,5 +1,8 @@
 namespace OrderSystem.UnitTests.Domain.Entities;
+
+using OrderSystem.Domain.Exceptions;
 using OrderSystem.Domain.Entities;
+using OrderSystem.Domain.Enums;
 
 public class OrderTests
 {
@@ -102,6 +105,18 @@ public class OrderTests
     }
 
     [Fact]
+    public void AddItem_ShouldThrowOverflowException_WhenCombinedQuantityExceedsIntMax()
+    {
+        var customer = new Customer("John Doe", "john.doe@example.com");
+        var product = new Product("Test Product", 10m);
+        var existingItem = new OrderItem(product, int.MaxValue);
+        var order = new Order([existingItem], customer);
+
+        Assert.Throws<OverflowException>(() => order.AddItem(product, 1));
+        Assert.Equal(int.MaxValue, Assert.Single(order.GetItems()).Quantity);
+    }
+
+    [Fact]
     public void ChangeItemQuantity_ShouldUpdateQuantity_WhenProductExistsInOrder()
     {
         // Arrange
@@ -111,7 +126,7 @@ public class OrderTests
         order.AddItem(product, 2);
 
         // Act
-        order.ChangeItemQuantity(product, 5);
+        order.ChangeItemQuantity(product.Id, 5);
 
         // Assert
         Assert.Single(order.GetItems());
@@ -120,7 +135,7 @@ public class OrderTests
     }
 
     [Fact]
-    public void ChangeItemQuantity_ShouldThrowInvalidOperationException_WhenProductDoesNotExistInOrder()
+    public void ChangeItemQuantity_ShouldThrowOrderItemNotFoundException_WhenProductDoesNotExistInOrder()
     {
         // Arrange
         var customer = new Customer("John Doe", "john.doe@example.com");
@@ -128,20 +143,10 @@ public class OrderTests
         var order = new Order([], customer);
 
         // Act & Assert
-        var exception = Assert.Throws<InvalidOperationException>(() => order.ChangeItemQuantity(product, 5));
-        Assert.Equal("Product not found in the order.", exception.Message);
-    }
-
-    [Fact]
-    public void ChangeItemQuantity_ShouldThrowArgumentNullException_WhenProductIsNull()
-    {
-        // Arrange
-        var customer = new Customer("John Doe", "john.doe@example.com");
-        var order = new Order([], customer);
-
-        // Act & Assert
-        var exception = Assert.Throws<ArgumentNullException>(() => order.ChangeItemQuantity(null!, 5));
-        Assert.Equal("product", exception.ParamName);
+        var exception = Assert.Throws<OrderItemNotFoundException>(
+            () => order.ChangeItemQuantity(product.Id, 5));
+        Assert.Equal(order.Id, exception.OrderId);
+        Assert.Equal(product.Id, exception.ProductId);
     }
 
     [Fact]
@@ -154,7 +159,8 @@ public class OrderTests
         order.AddItem(product, 2);
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => order.ChangeItemQuantity(product, 0));
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(
+            () => order.ChangeItemQuantity(product.Id, 0));
         Assert.Equal("newQuantity", exception.ParamName);
     }
 
@@ -168,8 +174,101 @@ public class OrderTests
         order.AddItem(product, 2);
 
         // Act & Assert
-        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => order.ChangeItemQuantity(product, -1));
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(
+            () => order.ChangeItemQuantity(product.Id, -1));
         Assert.Equal("newQuantity", exception.ParamName);
+    }
+
+    [Fact]
+    public void RemoveItem_ShouldRemoveMatchingProductLine()
+    {
+        var customer = new Customer("John Doe", "john.doe@example.com");
+        var firstProduct = new Product("First Product", 10m);
+        var secondProduct = new Product("Second Product", 20m);
+        var order = new Order([], customer);
+        order.AddItem(firstProduct, 1);
+        order.AddItem(secondProduct, 2);
+
+        order.RemoveItem(firstProduct.Id);
+
+        var remainingItem = Assert.Single(order.GetItems());
+        Assert.Equal(secondProduct.Id, remainingItem.Product.Id);
+        Assert.Equal(2, remainingItem.Quantity);
+    }
+
+    [Fact]
+    public void RemoveItem_ShouldThrowOrderCannotBeEmpty_WhenRemovingLastLine()
+    {
+        var customer = new Customer("John Doe", "john.doe@example.com");
+        var product = new Product("Test Product", 10m);
+        var order = new Order([], customer);
+        order.AddItem(product, 1);
+
+        Assert.Throws<OrderCannotBeEmptyException>(
+            () => order.RemoveItem(product.Id));
+
+        Assert.Single(order.GetItems());
+    }
+
+    [Fact]
+    public void RemoveItem_ShouldThrowOrderItemNotFound_WhenProductIsNotOnOrder()
+    {
+        var customer = new Customer("John Doe", "john.doe@example.com");
+        var product = new Product("Test Product", 10m);
+        var order = new Order([], customer);
+
+        var exception = Assert.Throws<OrderItemNotFoundException>(
+            () => order.RemoveItem(product.Id));
+
+        Assert.Equal(order.Id, exception.OrderId);
+        Assert.Equal(product.Id, exception.ProductId);
+    }
+
+    [Fact]
+    public void CancelOrder_ShouldSetCancelledStatus()
+    {
+        var customer = new Customer("John Doe", "john.doe@example.com");
+        var order = new Order([], customer);
+
+        order.CancelOrder();
+
+        Assert.Equal(OrderStatus.Cancelled, order.Status);
+    }
+
+    [Fact]
+    public void CancelOrder_ShouldRejectAlreadyCancelledOrder()
+    {
+        var customer = new Customer("John Doe", "john.doe@example.com");
+        var order = new Order([], customer);
+        order.CancelOrder();
+
+        var exception = Assert.Throws<OrderStatusNotAvailableException>(
+            order.CancelOrder);
+
+        Assert.Equal(OrderStatus.Cancelled, exception.ActiveStatus);
+        Assert.Equal(OrderStatus.Cancelled, exception.RequestedStatus);
+    }
+
+    [Fact]
+    public void ProcessOrder_ShouldSetProcessingStatus_WhenOrderHasItems()
+    {
+        var customer = new Customer("John Doe", "john.doe@example.com");
+        var order = new Order([], customer);
+        order.AddItem(new Product("Test Product", 10m), 1);
+
+        order.ProcessOrder();
+
+        Assert.Equal(OrderStatus.Processing, order.Status);
+    }
+
+    [Fact]
+    public void ProcessOrder_ShouldRejectEmptyOrder()
+    {
+        var customer = new Customer("John Doe", "john.doe@example.com");
+        var order = new Order([], customer);
+
+        Assert.Throws<OrderCannotBeEmptyException>(order.ProcessOrder);
+        Assert.Equal(OrderStatus.Placed, order.Status);
     }
 
     [Fact]

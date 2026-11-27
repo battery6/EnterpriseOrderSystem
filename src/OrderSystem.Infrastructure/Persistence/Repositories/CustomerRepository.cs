@@ -1,5 +1,6 @@
 namespace OrderSystem.Infrastructure.Persistence.Repositories;
 
+using Microsoft.EntityFrameworkCore;
 using OrderSystem.Application.Abstractions.Persistence;
 using OrderSystem.Domain.Entities;
 
@@ -15,5 +16,10 @@ public sealed class CustomerRepository(OrderSystemDbContext dbContext) : ICustom
     public async Task AddAsync(Customer customer, CancellationToken cancellationToken = default)
     {
         await _dbContext.Customers.AddAsync(customer, cancellationToken);
+    }
+
+    public void Remove(Customer customer)
+    {
+        _dbContext.Customers.Remove(customer);
     }
 }

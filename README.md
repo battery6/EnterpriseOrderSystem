@@ -52,6 +52,10 @@ The database model is documented in
 - Customer, product, order, and order-item entities.
 - Domain validation for names, emails, prices, and quantities.
 - Create and get operations for customers, products, and orders.
+- Change customer email and archive customers rather than deleting history.
+- Change product prices and archive products with reference-integrity checks.
+- Add, remove, and change order-item quantities; cancel orders while retaining history.
+- Enforce order lifecycle rules and preserve unit-price snapshots on order items.
 - FluentValidation for application commands.
 - Repository interfaces and Unit of Work abstraction.
 
@@ -61,6 +65,7 @@ The database model is documented in
 - JSON request and response contracts.
 - Problem Details responses.
 - Centralized exception handling.
+- Customer, product, and order-item mutation endpoints with validation and not-found/conflict handling.
 - Database-backed `/health` endpoint.
 - OpenAPI generation in Development mode.
 
@@ -68,6 +73,8 @@ The database model is documented in
 
 - EF Core with Npgsql/PostgreSQL.
 - EF Core migration history.
+- Customer/product archive timestamps and persisted order status.
+- Restrictive customer/product relationships to preserve order history.
 - Dedicated `OrderSystem.DbMigrator` console application.
 - Migration execution before API startup in Docker Compose.
 - PostgreSQL persistence through a named Docker volume.
@@ -85,6 +92,8 @@ The database model is documented in
 - Unit tests for domain, application, repositories, and dependency injection.
 - PostgreSQL Testcontainers integration tests.
 - Database migration and reset in the integration fixture.
+- Unit and API integration coverage for customer/product updates and archival, order-item changes, cancellation, and error paths.
+- Regression coverage for inserting new order items on tracked orders.
 - Docker Compose smoke testing.
 - Customer, product, and order create/get smoke checks.
 - GitHub Actions CI on pushes and pull requests.
@@ -201,17 +210,14 @@ stage.
 
 ### Phase 1: Complete CRUD and API contracts
 
-- [ ] Add update customer operations.
-- [ ] Add delete customer operations.
-- [ ] Add update product operations and product-name validation.
-- [ ] Add delete product operations with referential-integrity rules.
-- [ ] Add update order operations.
-- [ ] Add cancel/delete order operations.
-- [ ] Add update and remove order-item operations.
+- [x] Add customer email change and archive operations.
+- [x] Add product price change and archive operations with referential-integrity rules.
+- [x] Add order cancellation while preserving order history.
+- [x] Add order-item add, quantity-change, and remove operations.
 - [ ] Add list and paging endpoints.
 - [ ] Add filtering and sorting.
-- [ ] Return consistent Problem Details for all failures.
-- [ ] Test all happy paths and validation/error paths.
+- [x] Return Problem Details for validation, not-found, and conflict failures.
+- [x] Test implemented happy paths and validation/error paths.
 
 Delete operations should use a documented strategy:
 
@@ -265,10 +271,10 @@ membership, roles, and refresh-token policy.
 
 - [ ] Add row-version or concurrency-token fields.
 - [ ] Convert concurrent-write failures into conflict responses.
-- [ ] Prevent duplicate product IDs within an order.
-- [ ] Preserve immutable order-item unit prices.
-- [ ] Add order status transitions.
-- [ ] Add cancellation and refund rules.
+- [x] Group duplicate product IDs into one order-item line.
+- [x] Preserve order-item unit-price snapshots.
+- [x] Add order status transitions and cancellation rules.
+- [ ] Define refund rules.
 - [ ] Add a real stock/reservation model if inventory is demonstrated.
 - [ ] Add database transaction boundaries where multiple aggregates change.
 - [ ] Decide and test optimistic-concurrency behavior for updates.
@@ -321,7 +327,7 @@ readiness.
 
 ### Phase 8: Testing maturity
 
-- [ ] Add update/delete API tests.
+- [x] Add update/archive and order lifecycle API tests.
 - [ ] Add tenant-isolation tests.
 - [ ] Add authentication and authorization tests.
 - [ ] Add concurrency-conflict tests.

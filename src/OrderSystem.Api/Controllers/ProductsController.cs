@@ -5,12 +5,16 @@ using OrderSystem.Api.Contracts.Responses;
 using OrderSystem.Api.Contracts.Requests;
 using OrderSystem.Application.Products.CreateProduct;
 using OrderSystem.Application.Products.GetProduct;
+using OrderSystem.Application.Products.ChangeProductPrice;
+using OrderSystem.Application.Products.DeleteProduct;
 
 [ApiController]
 [Route("api/products")]
 public sealed class ProductsController(
     CreateProductHandler createProduct,
-    GetProductHandler getProduct
+    GetProductHandler getProduct,
+    ChangeProductPriceHandler changeProductPrice,
+    DeleteProductHandler deleteProduct
 ) : ControllerBase
 {
     [HttpGet("{id:guid}")]
@@ -46,5 +50,33 @@ public sealed class ProductsController(
             nameof(GetById),
             new { id = product.Id },
             response);
+    }
+
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<ProductResponse>> ChangePrice(
+        Guid id,
+        ChangeProductPriceRequest request,
+        CancellationToken cancellationToken)
+    {
+        var Product = await changeProductPrice.HandleAsync(
+            new ChangeProductPriceCommand(id, request.CurrentPrice),
+            cancellationToken);
+        
+        return Ok(new ProductResponse(
+            Product.Id, 
+            Product.Name, 
+            Product.CurrentPrice));
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await deleteProduct.HandleAsync(
+            new DeleteProductCommand(id),
+            cancellationToken);
+
+        return NoContent();
     }
 }

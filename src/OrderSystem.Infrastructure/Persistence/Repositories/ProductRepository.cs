@@ -28,4 +28,9 @@ public sealed class ProductRepository(OrderSystemDbContext dbContext) : IProduct
     {
         await _dbContext.Products.AddAsync(product, cancellationToken);
     }
+
+    public void Remove(Product product)
+    {
+        _dbContext.Products.Remove(product);
+    }
 }

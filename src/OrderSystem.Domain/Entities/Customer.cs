@@ -1,14 +1,17 @@
 namespace OrderSystem.Domain.Entities;
 
 using OrderSystem.Domain.Common;
+using OrderSystem.Domain.Exceptions;
 using System.Net.Mail;
 
 public class Customer : BaseEntity
 {
     public string Name { get; private set; }
     public string Email { get; private set; }
+    public DateTime? ArchivedAt { get; private set; }
     public const int MaxNameLength = 100;
     public const int MaxEmailLength = 100;
+    public bool IsArchived => ArchivedAt.HasValue;
 
     public Customer(string name, string email)
     {
@@ -48,6 +51,12 @@ public class Customer : BaseEntity
 
     public void UpdateEmail(string newEmail)
     {
+
+        if (IsArchived)
+        {
+            throw new CustomerArchivedException(Id);
+        }
+
         if (newEmail is null)
         {
             throw new ArgumentNullException(nameof(newEmail), "Email is required.");
@@ -71,5 +80,16 @@ public class Customer : BaseEntity
     {
         return !string.IsNullOrWhiteSpace(email) 
             && MailAddress.TryCreate(email, out _);
+    }
+
+    public void Archive()
+    {
+        if (IsArchived)
+        {
+            return;
+        }
+
+        ArchivedAt = DateTime.UtcNow;
+        UpdateTimestamp();
     }
 }

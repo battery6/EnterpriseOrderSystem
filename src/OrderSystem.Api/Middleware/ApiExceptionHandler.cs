@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using OrderSystem.Application.Common.Exceptions;
+using OrderSystem.Domain.Enums;
+using OrderSystem.Domain.Exceptions;
 
 internal sealed class ApiExceptionHandler(
     IProblemDetailsService problemDetailsService,
@@ -22,6 +24,46 @@ internal sealed class ApiExceptionHandler(
                 CreateValidationProblemDetails(
                     validationException,
                     httpContext.Request.Path.Value),
+            OrderNotFoundException orderNotFoundException =>
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "Order not found",
+                    Detail = orderNotFoundException.Message,
+                    Instance = httpContext.Request.Path.Value
+                },
+            OrderCannotBeEmptyException orderCannotBeEmptyException =>
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Order cannot be empty",
+                    Detail = orderCannotBeEmptyException.Message,
+                    Instance = httpContext.Request.Path.Value
+                },
+            OrderItemNotFoundException orderItemNotFoundException =>
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "Order item not found",
+                    Detail = orderItemNotFoundException.Message,
+                    Instance = httpContext.Request.Path.Value
+                },
+            OrderNotEditableException orderNotEditableException =>
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Order cannot be modified",
+                    Detail = orderNotEditableException.Message,
+                    Instance = httpContext.Request.Path.Value
+                },
+            OrderStatusNotAvailableException orderStatusNotAvailableException =>
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Order status change not possible",
+                    Detail = orderStatusNotAvailableException.Message,
+                    Instance = httpContext.Request.Path.Value
+                },
             CustomerNotFoundException customerNotFoundException =>
                 new ProblemDetails
                 {
@@ -30,12 +72,36 @@ internal sealed class ApiExceptionHandler(
                     Detail = customerNotFoundException.Message,
                     Instance = httpContext.Request.Path.Value
                 },
+            CustomerArchivedException customerArchivedException =>
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Customer is archived",
+                    Detail = customerArchivedException.Message,
+                    Instance = httpContext.Request.Path.Value
+                },
+            ProductNotFoundException productNotFoundException =>
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status404NotFound,
+                    Title = "Product not found",
+                    Detail = productNotFoundException.Message,
+                    Instance = httpContext.Request.Path.Value
+                },
             ProductsNotFoundException productsNotFoundException =>
                 new ProblemDetails
                 {
                     Status = StatusCodes.Status404NotFound,
                     Title = "Products not found",
                     Detail = productsNotFoundException.Message,
+                    Instance = httpContext.Request.Path.Value
+                },
+            ProductArchivedException productArchivedException =>
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = "Product is archived",
+                    Detail = productArchivedException.Message,
                     Instance = httpContext.Request.Path.Value
                 },
             DbUpdateException

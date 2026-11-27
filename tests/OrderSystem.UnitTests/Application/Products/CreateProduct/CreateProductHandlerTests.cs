@@ -69,6 +69,10 @@ public sealed class CreateProductHandlerTests
             AddedProduct = product;
             return Task.CompletedTask;
         }
+
+        public void Remove(Product product)
+        {
+        }
     }
 
     private sealed class FakeUnitOfWork : IUnitOfWork

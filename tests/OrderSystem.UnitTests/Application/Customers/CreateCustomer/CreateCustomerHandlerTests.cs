@@ -62,6 +62,10 @@ public sealed class CreateCustomerHandlerTests
             AddedCustomer = customer;
             return Task.CompletedTask;
         }
+
+        public void Remove(Customer customer)
+        {
+        }
     }
 
     private sealed class FakeUnitOfWork : IUnitOfWork

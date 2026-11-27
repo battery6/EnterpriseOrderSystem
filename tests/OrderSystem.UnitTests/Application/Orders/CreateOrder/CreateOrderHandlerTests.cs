@@ -20,6 +20,10 @@ public class CreateOrderHandlerTests
         {
             return Task.CompletedTask;
         }
+
+        public void Remove(Customer customer)
+        {
+        }
     }
 
     private sealed class FakeProductRepository(params Product[] products) : IProductRepository
@@ -49,6 +53,10 @@ public class CreateOrderHandlerTests
         {
             return Task.CompletedTask;
         }
+
+        public void Remove(Product product)
+        {
+        }
     }
 
     private sealed class FakeOrderRepository : IOrderRepository
@@ -66,6 +74,21 @@ public class CreateOrderHandlerTests
         {
             SavedOrder = order;
             return Task.CompletedTask;
+        }
+
+        public Task<bool> HasOrdersForCustomerAsync(
+            Guid customerId,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(SavedOrder?.Customer.Id == customerId);
+        }
+
+        public Task<bool> HasOrderItemsForProductAsync(
+            Guid productId,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(
+                SavedOrder?.GetItems().Any(item => item.Product.Id == productId) ?? false);
         }
     }
 

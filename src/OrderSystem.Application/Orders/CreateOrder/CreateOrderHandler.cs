@@ -4,6 +4,7 @@ using FluentValidation;
 using OrderSystem.Domain.Entities;
 using OrderSystem.Application.Abstractions.Persistence;
 using OrderSystem.Application.Common.Exceptions;
+using OrderSystem.Domain.Exceptions;
 
 public sealed class CreateOrderHandler(
     IValidator<CreateOrderCommand> validator,
@@ -20,13 +21,18 @@ public sealed class CreateOrderHandler(
 
     public async Task<Order> HandleAsync(
         CreateOrderCommand command,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         await _validator.ValidateAndThrowAsync(command, cancellationToken);
 
         var customer = await _customers.GetByIdAsync(
             command.CustomerId, cancellationToken) 
             ?? throw new CustomerNotFoundException(command.CustomerId);
+
+        if(customer.IsArchived)
+        {
+            throw new CustomerArchivedException(command.CustomerId);
+        }
         
         var productIds = command.OrderItems
             .Select(item => item.ProductId)
@@ -45,10 +51,22 @@ public sealed class CreateOrderHandler(
         if (missingIds.Length > 0)
             throw new ProductsNotFoundException(missingIds);
 
-        var order = new Order([], customer);
+        var archivedProduct = products.FirstOrDefault(
+            product => product.IsArchived);
+        
+        if (archivedProduct is not null)
+        {
+            throw new ProductArchivedException(archivedProduct.Id);
+        }
 
-        foreach (var item in command.OrderItems)
-            order.AddItem(productsById[item.ProductId], item.Quantity);
+        var orderItems = command.OrderItems
+            .GroupBy(item => item.ProductId)
+            .Select(group => new OrderItem(
+                productsById[group.Key],
+                group.Sum(item => item.Quantity)))
+        .ToList();
+
+        var order = new Order(orderItems, customer);
 
         await _orders.AddAsync(order, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -44,7 +44,8 @@ public sealed class OrderSystemDbContext(
             entity.HasOne(order => order.Customer)
                 .WithMany()
                 .HasForeignKey("CustomerId")
-                .IsRequired();
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
             entity.HasMany<OrderItem>("Items")
                 .WithOne()
                 .HasForeignKey("OrderId")
@@ -54,10 +55,13 @@ public sealed class OrderSystemDbContext(
 
         modelBuilder.Entity<OrderItem>(entity =>
         {
+            entity.Property(item => item.Id)
+                .ValueGeneratedNever();
             entity.HasOne(item => item.Product)
             .WithMany()
             .HasForeignKey("ProductId")
-            .IsRequired();
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
             entity.Property(item => item.UnitPrice)
             .HasPrecision(18, 2)
             .IsRequired();

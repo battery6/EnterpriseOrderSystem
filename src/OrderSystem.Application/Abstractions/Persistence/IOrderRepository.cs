@@ -10,4 +10,12 @@ public interface IOrderRepository
     Task<Order?> GetByIdAsync(
         Guid orderId,
         CancellationToken cancellationToken = default);
+
+    Task<bool> HasOrdersForCustomerAsync(
+        Guid customerId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> HasOrderItemsForProductAsync(
+        Guid productId,
+        CancellationToken cancellationToken = default);
 }

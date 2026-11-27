@@ -8,10 +8,19 @@ public sealed class GetCustomerHandler(
 {
     private readonly ICustomerRepository _customers = customers;
 
-    public Task<Customer?> HandleAsync (
+    public async Task<Customer?> HandleAsync (
         GetCustomerQuery query,
         CancellationToken cancellationToken = default)
     {
-        return _customers.GetByIdAsync(query.Id, cancellationToken);
+        var customer = await _customers.GetByIdAsync(
+            query.Id, 
+            cancellationToken);
+
+        if(customer is null || customer.IsArchived)
+        {
+            return null;
+        }
+
+        return customer;
     }
 }

@@ -1,4 +1,6 @@
 namespace OrderSystem.UnitTests.Domain.Entities;
+
+using OrderSystem.Domain.Exceptions;
 using OrderSystem.Domain.Entities;
 
 public class CustomerTests
@@ -102,5 +104,15 @@ public class CustomerTests
         // Act & Assert
         var exception = Assert.Throws<ArgumentNullException>(() => customer.UpdateEmail(nullEmail!));
         Assert.Equal("newEmail", exception.ParamName);
+    }
+
+    [Fact]
+    public void UpdateEmail_ShouldThrowCustomerArchivedException_WhenCustomerIsArchived()
+    {
+        var customer = new Customer("John Doe", "john.doe@example.com");
+        customer.Archive();
+
+        Assert.Throws<CustomerArchivedException>(
+            () => customer.UpdateEmail("john.new@example.com"));
     }
 }

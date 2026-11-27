@@ -1,4 +1,6 @@
 ﻿namespace OrderSystem.UnitTests.Domain.Entities;
+
+using OrderSystem.Domain.Exceptions;
 using OrderSystem.Domain.Entities;
 
 public class ProductTests
@@ -53,21 +55,21 @@ public class ProductTests
     }
 
     [Fact]
-    public void SetPrice_UpdatesCurrentPrice_WhenNewPriceIsValid()
+    public void UpdatePrice_UpdatesCurrentPrice_WhenNewPriceIsValid()
     {
         // Arrange
         var product = new Product("Test Product", 10.99m);
         decimal newPrice = 15.99m;
 
         // Act
-        product.SetPrice(newPrice);
+        product.UpdatePrice(newPrice);
 
         // Assert
         Assert.Equal(newPrice, product.CurrentPrice);
     }
 
     [Fact]
-    public void SetPrice_ThrowsArgumentOutOfRangeException_WhenNewPriceIsNegative()
+    public void UpdatePrice_ThrowsArgumentOutOfRangeException_WhenNewPriceIsNegative()
     {
         // Arrange
         var product = new Product("Test Product", 10.99m);
@@ -75,9 +77,18 @@ public class ProductTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentOutOfRangeException>(
-            () => product.SetPrice(newPrice));
+            () => product.UpdatePrice(newPrice));
         Assert.Equal("newPrice", exception.ParamName);
     }
 
+    [Fact]
+    public void UpdatePrice_ShouldThrowProductArchivedException_WhenProductIsArchived()
+    {
+        var product = new Product("Test Product", 10m);
+        product.Archive();
+
+        Assert.Throws<ProductArchivedException>(
+            () => product.UpdatePrice(12m));
+    }
 
 }
